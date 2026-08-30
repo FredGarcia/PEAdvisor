@@ -1,6 +1,19 @@
-from peadvisor.services.decision import classer
+from peadvisor.config import CRITERES_SCORE
+from peadvisor.services.decision import CRITERES, classer
 from peadvisor.services.importer import importer
+from peadvisor.services.scoring import calculer_sous_scores
 from peadvisor.models import Actif
+
+
+def test_topsis_couvre_toutes_les_familles_du_score(session):
+    """Une famille de critères absente de la matrice verrait sa pondération
+    ignorée par TOPSIS, qui classerait sur un score différent du score pondéré."""
+    assert set(CRITERES) == set(CRITERES_SCORE)
+
+    importer(session, "seed")
+    actif = session.query(Actif).first()
+    # Les sous-notes réellement produites couvrent bien les critères attendus.
+    assert set(calculer_sous_scores(actif)) == set(CRITERES)
 
 
 def test_topsis_classe_tous_les_actifs(session):

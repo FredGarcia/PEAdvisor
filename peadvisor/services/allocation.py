@@ -53,19 +53,23 @@ def _metrique(actif: Actif, objectif: str) -> float:
 
     Critères pondérés (0-100) : au socle du score global s'ajoutent, selon
     l'objectif, le dividende / la croissance / le potentiel, plus un bonus
-    transversal de qualité (ESG) et de liquidité, et une pénalité si des
-    données clés manquent (la sélection privilégie les valeurs documentées)."""
+    transversal de qualité (ESG), et une pénalité si des données clés manquent
+    (la sélection privilégie les valeurs documentées).
+
+    Un bonus de liquidité était prévu ici, mais le moteur de scoring ne produit
+    aucune sous-note « liquidité » : le terme valait toujours 0. Il est retiré
+    plutôt que laissé inerte — le rétablir suppose d'abord d'ajouter la famille
+    au scoring (volume / quantité échangée sont déjà collectés)."""
     sous = json.loads(actif.sous_scores) if actif.sous_scores else {}
     score = actif.score_global or 0.0
     esg = (actif.score_esg or 0.0)
-    liquidite = sous.get("liquidite") or 0.0
     if objectif == "dividendes":
         base = 0.45 * (sous.get("dividende") or 0) + 0.15 * (sous.get("volatilite") or 0) + 0.30 * score
     elif objectif == "croissance":
         base = 0.30 * (sous.get("croissance") or 0) + 0.25 * (sous.get("potentiel") or 0) + 0.35 * score
     else:  # équilibré
         base = 0.80 * score
-    note = base + 0.06 * esg + 0.04 * liquidite
+    note = base + 0.06 * esg
     # Pénalité de complétude : chaque donnée clé absente retire des points.
     note -= 6.0 * len(_infos_manquantes(actif))
     return max(note, 0.0)
@@ -234,7 +238,7 @@ def proposer_allocation(session: Session, demande: DemandeAllocation) -> Reponse
     }
     criteres = [
         f"Sélection {demande.objectif} : {criteres_objectif.get(demande.objectif, 'score global')}, "
-        "+ bonus ESG (6 %) et liquidité (4 %).",
+        "+ bonus ESG (6 %).",
         "Pénalité de complétude : les valeurs aux données clés manquantes sont défavorisées.",
         f"Diversification : ≤ {poids_max_ligne:.0%} par ligne, ≤ {poids_max_secteur:.0%} par secteur, "
         f"part minimale de fonds (ETF/OPCVM) dans la poche cœur.",

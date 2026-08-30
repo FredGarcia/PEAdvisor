@@ -20,10 +20,15 @@ from __future__ import annotations
 import json
 import math
 
-from peadvisor.config import charger_scoring
+from peadvisor.config import CRITERES_SCORE, charger_scoring
 from peadvisor.models import Actif
 
-CRITERES = ["potentiel", "valorisation", "croissance", "esg", "dividende", "volatilite", "consensus"]
+# Critères de la matrice de décision = les familles du moteur de scoring, sans
+# exception : toute famille absente d'ici verrait sa pondération silencieusement
+# ignorée par TOPSIS, qui classerait alors sur un score différent du score
+# pondéré. La liste est donc dérivée de la source unique (config.CRITERES_SCORE)
+# et suit automatiquement l'ajout d'une famille.
+CRITERES = list(CRITERES_SCORE)
 
 
 def _matrice(actifs: list[Actif], defaut: float) -> list[list[float]]:

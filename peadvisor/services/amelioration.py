@@ -60,7 +60,7 @@ def proposer_ponderations(session: Session) -> dict[str, Any]:
     # Montée de coordonnées bornée autour des pondérations actuelles.
     candidates = dict(actuelles)
     meilleure = correlation_avant
-    for _ in range(4):  # quelques passes suffisent sur 7 critères
+    for _ in range(4):  # quelques passes suffisent sur les 10 familles de critères
         progres = False
         for critere in candidates:
             for delta in (pas, -pas):
